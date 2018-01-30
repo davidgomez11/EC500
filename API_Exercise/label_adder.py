@@ -2,7 +2,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
 
-#function that adds a label to an image in the current directory
+#tester function that adds a label to an image in the current directory
 def label_adder(image):
 	img = Image.open(str(image))
 	draw = ImageDraw.Draw(img)
