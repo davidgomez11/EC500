@@ -184,10 +184,3 @@ image_search(item)
 print("Running the rest of the operation. \n")
 
 apply_funct(os.getcwd())	#applies function to current working directory
-
-
-folder = raw_input("Please input the folder name where the images were put in.\n ")
-
-retrieve_images(folder)
-
-print(type(folder))
