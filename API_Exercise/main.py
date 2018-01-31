@@ -54,7 +54,9 @@ def image_search(item):		#Function which downloads images from a Twitter search
 			
 
 	for media in media_files:	#iterating through set of images
-		wget.download(media,out = 'practice_photos')		#downloading images via url, and storing into folder called 'twitter_images'
+		
+		#downloading images via url, and storing into folder in directory called 'twitter_images'
+		wget.download(media,out = 'twitter_images')		
 
 
 def retrieve_images(directory):		#function which just prints out .jpg file names of a certain directory
