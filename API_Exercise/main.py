@@ -177,6 +177,8 @@ def apply_funct(directory):		#function which will apply labels to images from a 
 
     subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
 
+    #for windows users execute this version
+    #subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
 
 item = raw_input("Please input something you want to search.\n ")
 
