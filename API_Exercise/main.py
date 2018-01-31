@@ -169,7 +169,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
         img.save(k)
         print(k,v)
 
-	#The line below executes a ffmpeg command in the command line tool (Terminal, Command Prompt) of which creates a video
+	#The line below executes a ffmpeg command in the command line tool of which creates a video
 	# out of the images in the current directory   
     fps = 1
 
