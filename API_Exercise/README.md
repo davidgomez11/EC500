@@ -2,7 +2,7 @@
   Build a library (preferable in python) that downloads images from a twitter feed, converts them to a video and describes the content of the images in the video.
 
 
-## **Important Libraries to load:**
+## **Important Libraries to download:**
   `Tweepy`, `Pillow`, `wget`, `Google Cloud Vision API` libraries, `FFMPEG`
 
 ## **Extra Notes**  
