@@ -10,6 +10,7 @@ import os
 
 from google.cloud import vision
 from google.cloud.vision import types
+from google.cloud import storage
 
 from PIL import Image
 from PIL import ImageFont
@@ -18,6 +19,8 @@ from PIL import ImageDraw
 import subprocess
 
 import time
+
+import datetime
 
 consumer_key = 	'XXXXXXX'
 consumer_secret = 'XXXXXX'
@@ -160,6 +163,89 @@ def detect_faces(path):		#function which detects sentiment in faces from images
 
     return photo_label
 
+def detect_faces_uri(uri, image_name):		#function which detects faces in a file located in Google Cloud Storage and adds labels to them
+    
+    client = vision.ImageAnnotatorClient()
+    # [START migration_image_uri]
+    image = types.Image()
+    image.source.image_uri = uri
+    # [END migration_image_uri]
+
+    response = client.face_detection(image=image)
+    faces = response.face_annotations
+
+    # Names of likelihood from google.cloud.vision.enums
+    likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
+                       'LIKELY', 'VERY_LIKELY')
+
+    ideal_likelihoods = ['POSSIBLE','LIKELY', 'VERY_LIKELY']
+
+    photo_label = ""
+
+    added = False  #flag for checking if an item was added to the dictionary
+
+    #print('Faces:')
+
+    for face in faces:
+
+    	#print("current image " + path)
+
+    	if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
+    		#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
+
+    		#temporary dictionary variable which has the sentiment value paired with the image
+    		temp = "anger: {}".format(likelihood_name[face.anger_likelihood])
+
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label += (temp)
+
+    	if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
+    		#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
+
+    		#temporary dictionary variable which has the sentiment value paired with the image
+    		temp = "joy: {}".format(likelihood_name[face.joy_likelihood])
+
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label += (temp)
+
+    	if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
+    		#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+
+    		#temporary dictionary variable which has the sentiment value paired with the image
+    		temp = "surprise: {}".format(likelihood_name[face.surprise_likelihood])
+
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label += (temp)
+
+    	added = True
+
+        
+
+    if added == False:
+    	print('unsure emotions')
+
+    	temp = "unsure emotions"
+
+    	photo_label += (temp)
+
+
+   	download_blob(bucket_name, image_name, image_name )		#Here we download the image from Google Cloud Storage bucket
+
+
+   	#Apply a label to the current image
+   	img = Image.open( image_name )
+    draw = ImageDraw.Draw(img)
+    # font = ImageFont.truetype(<font-file>, <font-size>)
+    font = ImageFont.truetype("arial.ttf", 20)
+    # draw.text((x, y),"Sample Text",(r,g,b))
+    draw.text((0, 0), photo_label ,(255,255,255),font=font)
+    img.save( image_name )
+    print( image_name , photo_label )
+
+    upload_blob(bucket_name, image_name, image_name)		#Here we upload the new annotated image to the bucket
+
+    #return photo_label
+
 def apply_funct(directory):		#function which will apply labels to images from a directory and create a video out of them
 
     dicto = {}	#Data structure which will contain the labels corresponding to their image
@@ -174,7 +260,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
         else:
             continue
     
-    print("in dictionary \n")
+    #print("in dictionary \n")
 
     for k,v in dicto.items():		#Adding labels to the images
         img = Image.open( os.path.abspath(k) )
@@ -194,6 +280,42 @@ def apply_funct(directory):		#function which will apply labels to images from a 
 
     #for windows users execute this version
     #subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
+
+
+'''
+function which calls other function and then ends up compiling the newly annotated images 
+to a video and downloads them to the current working directory
+'''
+def apply_funct_v2(bucket_name):	
+	storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
+    blobs = bucket.list_blobs()
+
+    dicto = {}
+
+    for blob in blobs:
+        #print(blob.name)
+
+        uri = "gs://{}/{}".format(bucket_name, blob.name)
+
+        detect_faces_uri(uri, blob.name)
+    	time.sleep(2)
+
+        #print("")
+
+    for blob in blobs:		#Here we download the newly annotated images to the current working directory
+    	download_blob(bucket_name, blob.name, blob.name)
+
+	#The line below executes a ffmpeg command in the command line tool of which creates a video
+	# out of the images in the current directory   
+    fps = 1
+
+    subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
+
+    #for windows users execute this version
+    #subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
+
 
 item = raw_input("Please input something you want to search.\n ")
 
