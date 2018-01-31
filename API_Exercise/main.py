@@ -70,6 +70,21 @@ def retrieve_images(directory):		#function which just prints out .jpg file names
 		else:
 			continue
 
+def rename_images(directory):		#function that renames .jpg files to (image-0, image-1) format of a certain directory
+	
+	i = 0
+
+	for filename in os.listdir(directory):
+		if filename.endswith(".jpg"): 
+
+			os.rename(os.path.join(directory, filename), os.path.join(directory, "image-{}.jpg".format(i)))
+			
+			i+=1
+
+			continue
+		else:
+			continue
+
 def detect_faces(path):		#function which detects sentiment in faces from images
     
     client = vision.ImageAnnotatorClient()
