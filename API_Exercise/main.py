@@ -33,8 +33,97 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
 
+#Function which downloads images from a Twitter search and stores them into a directory
+def image_search(item, directory):		
 
-def image_search(item):		#Function which downloads images from a Twitter search
+
+	public_tweets = api.search( str(item) , count = 50)
+
+	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
+
+	for tweet in public_tweets:		#Searching through tweets generated
+
+		media_item = tweet.entities.get('media', [])	#Getting multimedia content of tweet
+
+		#print(tweet.text)
+
+		if len( media_item ) > 0 :	#Checking if there are any multimedia content within a tweet
+
+			media_files.add(media_item[0]['media_url'])	#found multimedia content will be added to the set
+
+	if( len(media_files) == 0):		#Case in which no tweets with multimedia content were found
+		new_item = raw_input("Sorry, your search yielded no pictures.\n Please enter a new search query. \n")
+		image_search(new_item)
+			
+	i = 0
+	for media in media_files:	#iterating through set of images
+		
+		#downloading images via url, and storing into folder in directory called 'twitter_images'
+		s = wget.download(media,out = str(directory))
+
+		print("\n")
+
+		str_ver = str(media)
+
+		photo_file = str_ver[ (str_ver.rfind('/') + 1): ]	#Looking for substring of photo in media string
+
+		#print(media)
+
+		#print(photo_file)
+
+		#print("\n")
+
+
+		#From here I rename the images to a certain pattern (i.e. "image-01.jp" or "image-11.jpg")
+		# and I generate a black photo right after each image, to put labels onto later
+		if i < 9:
+			(os.rename(os.path.join( str(directory) , photo_file), os.path.join( str(directory) , "image-0{}.jpg".format(i))))
+
+			i+=1
+
+			img = Image.open( os.path.abspath("black_big_ver.jpg") )
+
+			(img.save(os.path.abspath(str(directory)) + "/image-0{}.jpg".format(i), "JPEG"))
+	
+			i+=1
+
+		else:
+			(os.rename(os.path.join( str(directory) , photo_file), os.path.join( str(directory) , "image-{}.jpg".format(i))))
+
+			i+=1
+
+			img = Image.open( os.path.abspath("black_big_ver.jpg") )
+
+			(img.save(os.path.abspath(str(directory)) + "/image-{}.jpg".format(i), "JPEG"))
+	
+			i+=1
+
+
+
+#Function which uploads .jpg files to a bucket in the Google Cloud Storage from a directory
+def upload_to_gcloud(directory, bucket_name):
+	for filename in os.listdir(directory):
+		if filename.endswith(".jpg"): 
+
+			upload_blob( str(bucket_name) , os.path.join(directory, filename), filename)
+			
+			continue
+		else:
+			continue	
+
+#Function that deletes .jpg files in a directory
+def delete_jpg(directory):
+	for filename in os.listdir(directory):
+		if filename.endswith(".jpg"): 
+
+			os.remove(filename)
+			
+			continue
+		else:
+			continue
+
+#Function which downloads images from a Twitter search and uploads them to Google Cloud Storage
+def image_search_cloud_ver(item, bucket_name):		
 
 
 	public_tweets = api.search( str(item) , count = 100)
@@ -58,8 +147,14 @@ def image_search(item):		#Function which downloads images from a Twitter search
 
 	for media in media_files:	#iterating through set of images
 		
-		#downloading images via url, and storing into folder in directory called 'twitter_images'
-		wget.download(media,out = 'twitter_images')		
+		#downloading images via url, and storing into folder into current working directory
+		wget.download(media,out = str(os.getcwd()) )
+
+		upload_to_gcloud( str(os.getcwd()), bucket_name )
+
+	delete_jpg( os.getcwd() )	#Runs delete function on current working directory to delete .jpg files in your cwd
+
+
 
 
 def retrieve_images(directory):		#function which just prints out .jpg file names of a certain directory
@@ -103,6 +198,8 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     response = client.face_detection(image=image)
     faces = response.face_annotations
 
+    time.sleep(2)
+
     # Names of likelihood from google.cloud.vision.enums
     likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
                        'LIKELY', 'VERY_LIKELY')
@@ -113,53 +210,80 @@ def detect_faces(path):		#function which detects sentiment in faces from images
 
     added = False  #flag for checking if an item was added to the dictionary
 
-    s = str(path)
+    print("REGULAR: " + path + "\n")
 
-    photo_file = s[ (s.find('/') + 1): ]	#splices the path string to return just the name of the photo
+    #The calculations below for incremented_file basically sets the key to the correct file, that being 
+    # the incremented one so it can add a label as its value later on
+    incremented_file = path[0:(path.find(".jpg")-1)] +  str(int(path[ (path.find(".jpg") - 1): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
+
+    if int(path[ (path.find(".jpg") - 2): (path.find(".jpg") - 1 )]) != 0:
+        incremented_file = path[0:(path.find(".jpg")-2)] +  str(int(path[ (path.find(".jpg") - 2): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
+
+    print("Incremented: " + incremented_file + "\n")
 
     #print('Faces:')
 
-    for face in faces:
+    print("FILE no: " + path[ (path.rfind('-')+ 1) : path.rfind('.') ] + "\n") 
 
-    	#print("current image " + path)
+    #checking if photo is even if not we skip it, because the odd photos are the black jpgs,
+    # where the label will go onto from the previous photo
+    if (int( path[ (path.rfind('-')+ 1) : path.rfind('.') ] ) % 2 == 0) : 
+    	temp = {}
 
-    	if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
-    		#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
+    	for face in faces:
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = {path: "anger: {}".format(likelihood_name[face.anger_likelihood])}
+    		print("Figuring out facial sentiment in photos. \n")
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label.update(temp)
+    		#print("current image " + path)
 
-    	if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
-    		#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
+    		if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
+    			#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = {path: "joy: {}".format(likelihood_name[face.joy_likelihood])}
+    			#temporary dictionary variable which has the sentiment value paired with the image
+    			temp = {incremented_file: "anger: {}".format(likelihood_name[face.anger_likelihood])}
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label.update(temp)
+    			#adds temporary dictionary variable to the main dictionary
+    			photo_label.update(temp)
 
-    	if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
-    		#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+    		if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
+    			#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = {path: "surprise: {}".format(likelihood_name[face.surprise_likelihood])}
+    			#temporary dictionary variable which has the sentiment value paired with the image
+    			temp = {incremented_file: "joy: {}".format(likelihood_name[face.joy_likelihood])}
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label.update(temp)
+    			#adds temporary dictionary variable to the main dictionary
+    			photo_label.update(temp)
 
-    	added = True
+    		if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
+    			#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+
+    			#temporary dictionary variable which has the sentiment value paired with the image
+    			temp = {incremented_file: "surprise: {}".format(likelihood_name[face.surprise_likelihood])}
+
+    			#adds temporary dictionary variable to the main dictionary
+    			photo_label.update(temp)
+
+    		added = True
 
     	
 
-    if added == False:
-    	#print('unsure emotions')
+    	if added == False:
+    		#print('unsure emotions')
 
-    	temp = {path: "unsure emotions"}
+    		temp = {incremented_file: "unsure emotions"}
 
-    	photo_label.update(temp)
+    		photo_label.update(temp)
+
+    	if len(temp) == 0:
+
+    		temp = {incremented_file: "did not work"}
+
+        	photo_label.update(temp)
+
+    else:
+        print("skipping odd photo. \n")
+
+    print(photo_label)
 
     return photo_label
 
@@ -250,33 +374,54 @@ def apply_funct(directory):		#function which will apply labels to images from a 
 
     dicto = {}	#Data structure which will contain the labels corresponding to their image
 
-    for filename in os.listdir(directory):		
-        if filename.endswith(".jpg"): 
-            
-            dicto.update(detect_faces(os.path.join(directory, filename)))
-            time.sleep(2)
+    for filename in os.listdir(directory):
 
-            continue
+    	if filename == "black_big_ver.jpg":
+    		continue
+
+        if filename.endswith(".jpg"): 
+
+        	print("Current File: " + filename + "\n")
+        	dicto.update(detect_faces(os.path.join(directory, filename)))
+        	time.sleep(2)
+
+        	continue
         else:
-            continue
+        	continue
     
     #print("in dictionary \n")
 
     for k,v in dicto.items():		#Adding labels to the images
+
+    	print("Adding labels to images. \n")
+
         img = Image.open( os.path.abspath(k) )
+        width, height = img.size   #getting size of image
         draw = ImageDraw.Draw(img)
         # font = ImageFont.truetype(<font-file>, <font-size>)
         font = ImageFont.truetype("arial.ttf", 20)
+        
+        width, height = (600,480)
+        text_x, text_y = draw.textsize( str(v) )
+
+        x = (width - text_x)/2
+        y = (height - text_y)/2
+
         # draw.text((x, y),"Sample Text",(r,g,b))
-        draw.text((0, 0), str(v) ,(255,255,255),font=font)
+        #.text((0, 0), str(v) ,(255,255,255),font=font)
+
+        draw.text((x,y), str(v) ,(255,255,255),font=font)
+
         img.save(k)
         print(k,v)
 
+    print("Creating video out of labeled images. \n")
+
 	#The line below executes a ffmpeg command in the command line tool of which creates a video
 	# out of the images in the current directory   
-    fps = 1
+    fps = 0.5
 
-    subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
+    subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video10.avi"])
 
     #for windows users execute this version
     #subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
@@ -288,40 +433,40 @@ to a video and downloads them to the current working directory
 '''
 def apply_funct_v2(bucket_name):	
 	storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
+	bucket = storage_client.get_bucket(bucket_name)
 
-    blobs = bucket.list_blobs()
+	blobs = bucket.list_blobs()
 
-    dicto = {}
+	dicto = {}
 
-    for blob in blobs:
-        #print(blob.name)
+	for blob in blobs:
+		#print(blob.name)
 
-        uri = "gs://{}/{}".format(bucket_name, blob.name)
+		uri = "gs://{}/{}".format(bucket_name, blob.name)
 
-        detect_faces_uri(uri, blob.name)
-    	time.sleep(2)
+		detect_faces_uri(uri, blob.name)
+		time.sleep(2)
 
-        #print("")
+		#print("")
 
-    for blob in blobs:		#Here we download the newly annotated images to the current working directory
-    	download_blob(bucket_name, blob.name, blob.name)
-
+	for blob in blobs:		#Here we download the newly annotated images to the current working directory
+		download_blob(bucket_name, blob.name, blob.name)
+	
 	#The line below executes a ffmpeg command in the command line tool of which creates a video
 	# out of the images in the current directory   
-    fps = 1
+	fps = 1
 
-    subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
+	subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
 
-    #for windows users execute this version
-    #subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
+	#for windows users execute this version
+	#subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
 
 
 item = raw_input("Please input something you want to search.\n ")
 
-
-image_search(item)
+image_search(item, os.getcwd() )
 
 print("Running the rest of the operation. \n")
 
-apply_funct(os.getcwd())	#applies function to current working directory
+apply_funct( os.getcwd() )	#applies function to current working directory
+
