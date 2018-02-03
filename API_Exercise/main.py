@@ -707,13 +707,15 @@ def apply_funct_v2(bucket_name):
 
 """-------------------------Running----------------------------------"""
 
-item2 = raw_input("Please input something you want to search.\n ")
+#item2 = raw_input("Please input something you want to search.\n ")
 
-image_search_cloud_ver(item2, "twitter_images", os.getcwd() )
+#image_search_cloud_ver(item2, "twitter_images", os.getcwd() )
 
-print("Running the rest of the cloud operation. \n")
+#print("Running the rest of the cloud operation. \n")
 
-apply_funct_v2("twitter_images")
+#apply_funct_v2("twitter_images")
+
+"""~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
 #item = raw_input("Please input something you want to search.\n ")
 
@@ -725,3 +727,4 @@ apply_funct_v2("twitter_images")
 
 
 """------------------------------------------------------------------"""
+
