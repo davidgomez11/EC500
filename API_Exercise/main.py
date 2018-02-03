@@ -183,7 +183,8 @@ def rename_images(directory):		#function that renames .jpg files to (image-0, im
 		else:
 			continue
 
-def detect_faces(path):		#function which detects sentiment in faces from images
+#function which detects sentiment in faces from images as well as their top 3 web entities
+def detect_faces_and_web(path):		
     
     client = vision.ImageAnnotatorClient()
 
@@ -241,16 +242,25 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     	# adding it to a list which we will append to later
         if notes.web_entities:
             #print ('\n{} Web entities found: '.format(len(notes.web_entities)))
+            try:
+            	ver1 = (notes.web_entities[0].description).encode('ascii','replace')
+            	ver2 = (notes.web_entities[1].description).encode('ascii','replace')
+            	ver3 = (notes.web_entities[2].description).encode('ascii','replace')
+            	vals.append(ver1)
+            	vals.append(ver2)
+            	vals.append(ver3)
+            except IndexError:
+            	diff = 3 - len(vals)
+            	if diff == 1:
+            		vals.append("no value")
+            	if diff == 2:
+            		vals.append("no value")
+            		vals.append("no value")
 
-            ver1 = (notes.web_entities[0].description).encode('ascii','replace')
-
-            ver2 = (notes.web_entities[1].description).encode('ascii','replace')
-
-            ver3 = (notes.web_entities[2].description).encode('ascii','replace')
-
-            vals.append(ver1)
-            vals.append(ver2)
-            vals.append(ver3)
+        if len(vals) == 0:
+        	vals.append("no value")
+        	vals.append("no value")
+        	vals.append("no value")
 
         #Here we are doing the facial sentiment analysis appending a sentiment value to our list
         # which we then update our return dictionary variable with
@@ -415,7 +425,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
         if filename.endswith(".jpg"): 
 
         	print("Current File: " + filename + "\n")
-        	dicto.update(detect_faces(os.path.join(directory, filename)))
+        	dicto.update(detect_faces_and_web(os.path.join(directory, filename)))
         	time.sleep(2)
 
         	continue
@@ -459,14 +469,13 @@ def apply_funct(directory):		#function which will apply labels to images from a 
     for k in dicto.keys():
         dict_list.append(k)
 
-    last_file = str( dict_list[ 0 ] )  #getting the last file
+    dict_list.sort()
+
+    last_file = str( dict_list[ len(dict_list) - 1 ] )  #getting the last file
 
     img = Image.open( os.path.abspath(last_file) )      #opening it
 
-    extra_file = last_file[0:(last_file.find(".jpg")-1)] +  str(int(last_file[ (last_file.find(".jpg") - 1): (last_file.find(".jpg"))]) + 1) + last_file[last_file.find(".jpg"):]
-
-    if int(last_file[ (last_file.find(".jpg") - 2): (last_file.find(".jpg") - 1 )]) != 0:
-        extra_file = last_file[0:(last_file.find(".jpg")-2)] +  str(int(last_file[ (last_file.find(".jpg") - 2): (last_file.find(".jpg"))]) + 1) + last_file[last_file.find(".jpg"):]
+    extra_file = last_file[0:(last_file.rfind('/')-last_file.find('.')-3)] + "image-{}.jpg".format( len(dicto) + 10 )
 
     img.save(extra_file, "JPEG")    #saving it as a new file, duplicating it
 
@@ -517,9 +526,9 @@ def apply_funct_v2(bucket_name):
 	#subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
 
 
-item = raw_input("Please input something you want to search.\n ")
+#item = raw_input("Please input something you want to search.\n ")
 
-image_search(item, os.getcwd() )
+#image_search(item, os.getcwd() )
 
 print("Running the rest of the operation. \n")
 
