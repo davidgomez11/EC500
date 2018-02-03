@@ -37,7 +37,7 @@ api = tweepy.API(auth)
 def image_search(item, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 50)
+	public_tweets = api.search( str(item) , count = 10)
 
 	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
 
@@ -195,8 +195,11 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     image = types.Image(content=content)
     # [END migration_image_file]
 
-    response = client.face_detection(image=image)
+    response = client.face_detection(image=image)		#face detection
     faces = response.face_annotations
+
+    response2 = client.web_detection(image=image)       #web detection
+    notes = response2.web_detection
 
     time.sleep(2)
 
@@ -216,6 +219,8 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     # the incremented one so it can add a label as its value later on
     incremented_file = path[0:(path.find(".jpg")-1)] +  str(int(path[ (path.find(".jpg") - 1): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
 
+    #Checking if the file is under the format of "image-11.jpg" so the calculation below does the correct calculation for 
+    # the incremented_file variable
     if int(path[ (path.find(".jpg") - 2): (path.find(".jpg") - 1 )]) != 0:
         incremented_file = path[0:(path.find(".jpg")-2)] +  str(int(path[ (path.find(".jpg") - 2): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
 
@@ -230,6 +235,25 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     if (int( path[ (path.rfind('-')+ 1) : path.rfind('.') ] ) % 2 == 0) : 
     	temp = {}
 
+    	vals = []
+
+    	#Here we are taking the top 3 web items found in the web entities for the image and 
+    	# adding it to a list which we will append to later
+        if notes.web_entities:
+            #print ('\n{} Web entities found: '.format(len(notes.web_entities)))
+
+            ver1 = (notes.web_entities[0].description).encode('ascii','replace')
+
+            ver2 = (notes.web_entities[1].description).encode('ascii','replace')
+
+            ver3 = (notes.web_entities[2].description).encode('ascii','replace')
+
+            vals.append(ver1)
+            vals.append(ver2)
+            vals.append(ver3)
+
+        #Here we are doing the facial sentiment analysis appending a sentiment value to our list
+        # which we then update our return dictionary variable with
     	for face in faces:
 
     		print("Figuring out facial sentiment in photos. \n")
@@ -239,49 +263,58 @@ def detect_faces(path):		#function which detects sentiment in faces from images
     		if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
     			#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
 
-    			#temporary dictionary variable which has the sentiment value paired with the image
-    			temp = {incremented_file: "anger: {}".format(likelihood_name[face.anger_likelihood])}
+    			print("HEREE 1 \n")
 
-    			#adds temporary dictionary variable to the main dictionary
-    			photo_label.update(temp)
+    			vals.append("anger: {}".format(likelihood_name[face.anger_likelihood]))
+
+                temp = {incremented_file: vals}
+
+                #adds temporary dictionary variable to the main dictionary
+                photo_label.update(temp)
 
     		if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
     			#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
 
-    			#temporary dictionary variable which has the sentiment value paired with the image
-    			temp = {incremented_file: "joy: {}".format(likelihood_name[face.joy_likelihood])}
+    			print("HEREE 2 \n")
 
-    			#adds temporary dictionary variable to the main dictionary
-    			photo_label.update(temp)
+    			vals.append("joy: {}".format(likelihood_name[face.joy_likelihood]))
+
+                temp = {incremented_file: vals}
+
+                #adds temporary dictionary variable to the main dictionary
+                photo_label.update(temp)
 
     		if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
     			#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
 
-    			#temporary dictionary variable which has the sentiment value paired with the image
-    			temp = {incremented_file: "surprise: {}".format(likelihood_name[face.surprise_likelihood])}
+    			print("HEREE 3 \n")
 
-    			#adds temporary dictionary variable to the main dictionary
-    			photo_label.update(temp)
+    			vals.append("surprise: {}".format(likelihood_name[face.surprise_likelihood]))
+
+                temp = {incremented_file: vals}
+
+                #adds temporary dictionary variable to the main dictionary
+                photo_label.update(temp)
 
     		added = True
 
-    	
-
+    	#This case is for if the facial analysis didn't return any values from our ideal_likelihoods list
     	if added == False:
     		#print('unsure emotions')
 
-    		temp = {incremented_file: "unsure emotions"}
+    		vals.append("unsure emotions")
+
+    		temp = {incremented_file: vals}
 
     		photo_label.update(temp)
 
-    	if len(temp) == 0:
-
-    		temp = {incremented_file: "did not work"}
-
-        	photo_label.update(temp)
-
     else:
         print("skipping odd photo. \n")
+
+    #This case is for if the facial analysis failed to return any value 
+    if incremented_file in photo_label:
+    	if len(photo_label[incremented_file]) == 3:		#checking length of list of items gathered from google 
+    		photo_label[incremented_file].append("did not work")
 
     print(photo_label)
 
@@ -410,10 +443,32 @@ def apply_funct(directory):		#function which will apply labels to images from a 
         # draw.text((x, y),"Sample Text",(r,g,b))
         #.text((0, 0), str(v) ,(255,255,255),font=font)
 
-        draw.text((x,y), str(v) ,(255,255,255),font=font)
+        #draw.text((x,y), str(v) ,(255,255,255),font=font)
+
+        draw.text((x,y - 10), ( str(v[0]) + ", " + str(v[1]) + ", " ) ,(255,255,255),font=font)
+
+        draw.text((x,y + 10), ( str(v[2]) + ", " + str(v[3]) ) ,(255,255,255),font=font)
 
         img.save(k)
         print(k,v)
+
+    #Steps here before we create the video is basically duplicating the last .jpg file because
+    # it doesn't get included into the video for some reason, so my quick fix was duplicating it and
+    # adding it to .jpgs in the directory
+    dict_list = []
+    for k in dicto.keys():
+        dict_list.append(k)
+
+    last_file = str( dict_list[ 0 ] )  #getting the last file
+
+    img = Image.open( os.path.abspath(last_file) )      #opening it
+
+    extra_file = last_file[0:(last_file.find(".jpg")-1)] +  str(int(last_file[ (last_file.find(".jpg") - 1): (last_file.find(".jpg"))]) + 1) + last_file[last_file.find(".jpg"):]
+
+    if int(last_file[ (last_file.find(".jpg") - 2): (last_file.find(".jpg") - 1 )]) != 0:
+        extra_file = last_file[0:(last_file.find(".jpg")-2)] +  str(int(last_file[ (last_file.find(".jpg") - 2): (last_file.find(".jpg"))]) + 1) + last_file[last_file.find(".jpg"):]
+
+    img.save(extra_file, "JPEG")    #saving it as a new file, duplicating it
 
     print("Creating video out of labeled images. \n")
 
