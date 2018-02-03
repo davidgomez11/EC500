@@ -6,7 +6,7 @@
   `Tweepy`, `Pillow`, `wget`, `Google Cloud Vision API` and `Google Cloud Storage` libraries, `FFMPEG`
 
 ## **Extra Notes**  
-If you comment out the last four lines in the `main.py` you can run the functions which doesn't utilize the `Google Cloud Storage` and it'll work accordingly. Still a work in progress regarding some member functions that need to be added or adjusted. 
+If you comment out the last four lines in the `main.py` you can run the functions which doesn't utilize the `Google Cloud Storage` and it'll work accordingly. If you want to run the functions which do utilize `Google Cloud Storage` then comment out the four lines above the last four lines. Still a work in progress regarding some member functions that need to be added or adjusted. 
 
 Make sure to download `VLC` at http://www.videolan.org/ in order to run the video that is generated from this script.
 
