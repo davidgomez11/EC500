@@ -98,10 +98,53 @@ def image_search(item, directory):
 	
 			i+=1
 
+def upload_blob(bucket_name, source_file_name, destination_blob_name):
+    """Uploads a file to the bucket."""
+    """GOOGLE FUNCTION FROM https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/storage/cloud-client/snippets.py """
+    """NOT MY PROPERTY"""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
 
+    blob.upload_from_filename(source_file_name)
+
+    print('File {} uploaded to {}.'.format(
+        source_file_name,
+        destination_blob_name))
+
+
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    """GOOGLE FUNCTION FROM https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/storage/cloud-client/snippets.py """
+    """NOT MY PROPERTY"""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+
+    blob.download_to_filename(destination_file_name)
+
+    print('Blob {} downloaded to {}.'.format(
+        source_blob_name,
+        destination_file_name))
+
+#Function which downloads all blobs from a bucket on Google Cloud Storage
+def download_all_blobs(bucket_name):
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blobs = bucket.list_blobs()
+
+    for blob in blobs:
+    	#print(blob.name)
+
+    	download_blob(bucket_name, blob.name, blob.name)
+
+    	print('Blob {} downloaded to {}.'.format(blob.name, os.getcwd() ))
+
+		
 
 #Function which uploads .jpg files to a bucket in the Google Cloud Storage from a directory
-def upload_to_gcloud(directory, bucket_name):
+def upload_all_to_gcloud(directory, bucket_name):
 	for filename in os.listdir(directory):
 		if filename.endswith(".jpg"): 
 
@@ -109,24 +152,45 @@ def upload_to_gcloud(directory, bucket_name):
 			
 			continue
 		else:
-			continue	
+			continue
 
-#Function that deletes .jpg files in a directory
-def delete_jpg(directory):
+#Function which uploads a .jpg file to a bucket in the Google Cloud Storage from a directory
+def upload_single_to_gcloud(directory, name, bucket_name):
 	for filename in os.listdir(directory):
-		if filename.endswith(".jpg"): 
+		if filename.endswith(".jpg"):
+			
+			if filename == name:	#finding correct file to upload
 
-			os.remove(filename)
+				upload_blob( str(bucket_name) , os.path.join(directory, filename), filename)
 			
 			continue
 		else:
 			continue
 
-#Function which downloads images from a Twitter search and uploads them to Google Cloud Storage
-def image_search_cloud_ver(item, bucket_name):		
+
+#Function that deletes .jpg files in a directory, except a file you want to skip (basically )
+def delete_jpg(directory, skip):
+	for filename in os.listdir(directory):
+		if filename.endswith(".jpg"):
+
+			if filename == skip:
+				continue
+
+			else:
+				os.remove(filename)
+			
+			continue
+		else:
+			continue
+
+#Function which downloads images from a Twitter search and uploads them to Google Cloud Storage,
+# and deletes those images from your directory, since they are in the cloud
+def image_search_cloud_ver(item, bucket_name, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 100)
+	public_tweets = api.search( str(item) , count = 10)
+
+	#time.sleep(2)
 
 	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
 
@@ -144,20 +208,63 @@ def image_search_cloud_ver(item, bucket_name):
 		new_item = raw_input("Sorry, your search yielded no pictures.\n Please enter a new search query. \n")
 		image_search(new_item)
 			
-
+	i = 0
 	for media in media_files:	#iterating through set of images
 		
 		#downloading images via url, and storing into folder into current working directory
 		wget.download(media,out = str(os.getcwd()) )
 
-		upload_to_gcloud( str(os.getcwd()), bucket_name )
+		str_ver = str(media)
 
-	delete_jpg( os.getcwd() )	#Runs delete function on current working directory to delete .jpg files in your cwd
+		photo_file = str_ver[ (str_ver.rfind('/') + 1): ]	#Looking for substring of photo in media string
+
+		image1 = ""
+		image2 = ""
+
+		#From here I rename the images to a certain pattern (i.e. "image-01.jp" or "image-11.jpg")
+		# and I generate a black photo right after each image, to put labels onto later
+		if i < 9:
+			(os.rename(os.path.join( str(directory) , photo_file), os.path.join( str(directory) , "image-0{}.jpg".format(i))))
+
+			image1 = "image-0{}.jpg".format(i)
+
+			i+=1
+
+			img = Image.open( os.path.abspath("black_big_ver.jpg") )
+
+			(img.save(os.path.abspath(str(directory)) + "/image-0{}.jpg".format(i), "JPEG"))
+
+			image2 = "image-0{}.jpg".format(i)
+	
+			i+=1
+
+		else:
+			(os.rename(os.path.join( str(directory) , photo_file), os.path.join( str(directory) , "image-{}.jpg".format(i))))
+
+			image1 = "image-0{}.jpg".format(i)
+
+			i+=1
+
+			img = Image.open( os.path.abspath("black_big_ver.jpg") )
+
+			(img.save(os.path.abspath(str(directory)) + "/image-{}.jpg".format(i), "JPEG"))
+
+			image2 = "image-0{}.jpg".format(i)
+	
+			i+=1
+
+		time.sleep(2)
+
+		#Uploads two generated photos to the cloud
+		upload_single_to_gcloud( str(os.getcwd()), image1,  bucket_name )
+		upload_single_to_gcloud( str(os.getcwd()), image2,  bucket_name )
+
+	#Runs delete function on current working directory to delete .jpg files in your cwd, except black_big_ver.jpg
+	delete_jpg( os.getcwd(), "black_big_ver.jpg" )	
 
 
-
-
-def retrieve_images(directory):		#function which just prints out .jpg file names of a certain directory
+#function which just prints out .jpg file names of a certain directory
+def retrieve_images(directory):		
 
 	for filename in os.listdir(directory):
 		if filename.endswith(".jpg"): 
@@ -167,8 +274,8 @@ def retrieve_images(directory):		#function which just prints out .jpg file names
 			continue
 		else:
 			continue
-
-def rename_images(directory):		#function that renames .jpg files to (image-0, image-1) format of a certain directory
+#function that renames .jpg files to (image-0, image-1) format of a certain directory, probably need to update this function
+def rename_images(directory):		
 	
 	i = 0
 
@@ -330,7 +437,8 @@ def detect_faces_and_web(path):
 
     return photo_label
 
-def detect_faces_uri(uri, image_name):		#function which detects faces in a file located in Google Cloud Storage and adds labels to them
+#Function which detects faces and web entities in a file located in Google Cloud Storage and adds labels to them
+def detect_faces_and_web_uri(uri, image_name, bucket_name):		
     
     client = vision.ImageAnnotatorClient()
     # [START migration_image_uri]
@@ -341,76 +449,133 @@ def detect_faces_uri(uri, image_name):		#function which detects faces in a file 
     response = client.face_detection(image=image)
     faces = response.face_annotations
 
+    response2 = client.web_detection(image=image)
+    notes = response2.web_detection
+
     # Names of likelihood from google.cloud.vision.enums
     likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
                        'LIKELY', 'VERY_LIKELY')
 
     ideal_likelihoods = ['POSSIBLE','LIKELY', 'VERY_LIKELY']
 
-    photo_label = ""
+    photo_label = []
 
     added = False  #flag for checking if an item was added to the dictionary
 
+    path = str(image_name)
+
+    print("REGULAR: " + path + "\n")
+
+    #The calculations below for incremented_file basically sets the key to the correct file, that being 
+    # the incremented one so it can add a label as its value later on
+    incremented_file = path[0:(path.find(".jpg")-1)] +  str(int(path[ (path.find(".jpg") - 1): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
+
+    #Checking if the file is under the format of "image-11.jpg" so the calculation below does the correct calculation for 
+    # the incremented_file variable
+    if int(path[ (path.find(".jpg") - 2): (path.find(".jpg") - 1 )]) != 0:
+        incremented_file = path[0:(path.find(".jpg")-2)] +  str(int(path[ (path.find(".jpg") - 2): (path.find(".jpg"))]) + 1) + path[path.find(".jpg"):]
+
+    print("Incremented: " + incremented_file + "\n")
+
+    print("FILE no: " + path[ (path.rfind('-')+ 1) : path.rfind('.') ] + "\n")
     #print('Faces:')
 
-    for face in faces:
+    img = None
+    draw = None
 
-    	#print("current image " + path)
+    if (int( path[ (path.find('-')+ 2) ] ) % 2 == 0) : #checking if photo is even if not we skip it
+    	#time.sleep(2)
+    	vals = []
 
-    	if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
-    		#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
+        if notes.web_entities:
+            print ('\n{} Web entities found: '.format(len(notes.web_entities)))
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = "anger: {}".format(likelihood_name[face.anger_likelihood])
+            ver1 = (notes.web_entities[0].description).encode('ascii','replace')
+            ver2 = (notes.web_entities[1].description).encode('ascii','replace')
+            ver3 = (notes.web_entities[2].description).encode('ascii','replace')
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label += (temp)
+            vals.append(ver1)
+            vals.append(ver2)
+            vals.append(ver3)
+            #print vals
 
-    	if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
-    		#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
+    	for face in faces:
+    		print("Figuring out facial sentiment in photos. \n")
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = "joy: {}".format(likelihood_name[face.joy_likelihood])
+    		#print("current image " + path)
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label += (temp)
+    		if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
+    			#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
 
-    	if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
-    		#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+    			vals.append("anger: {}".format(likelihood_name[face.anger_likelihood]))
 
-    		#temporary dictionary variable which has the sentiment value paired with the image
-    		temp = "surprise: {}".format(likelihood_name[face.surprise_likelihood])
+                photo_label = vals
 
-    		#adds temporary dictionary variable to the main dictionary
-    		photo_label += (temp)
+    		if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
+    			#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
 
-    	added = True
+    			vals.append("joy: {}".format(likelihood_name[face.joy_likelihood]))
+
+                photo_label = vals
+
+    		if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
+    			#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+
+    			vals.append("surprise: {}".format(likelihood_name[face.surprise_likelihood]))
+
+                photo_label = vals
+
+    		added = True
 
         
 
-    if added == False:
-    	print('unsure emotions')
+    	if added == False:
+    		print('unsure emotions')
 
-    	temp = "unsure emotions"
+    		#temp = "unsure emotions"
 
-    	photo_label += (temp)
+    		#photo_label += (temp)
 
+    		vals.append("unsure emotions")
 
-   	download_blob(bucket_name, image_name, image_name )		#Here we download the image from Google Cloud Storage bucket
+    		#temp = {incremented_file: vals}
 
+    		photo_label = vals
 
-   	#Apply a label to the current image
-   	img = Image.open( image_name )
-    draw = ImageDraw.Draw(img)
-    # font = ImageFont.truetype(<font-file>, <font-size>)
-    font = ImageFont.truetype("arial.ttf", 20)
-    # draw.text((x, y),"Sample Text",(r,g,b))
-    draw.text((0, 0), photo_label ,(255,255,255),font=font)
-    img.save( image_name )
-    print( image_name , photo_label )
+    	#This case is for if the facial analysis failed to return any value 
+    	if len(photo_label) == 3:		#checking length of list of items gathered from google 
+    		photo_label.append("did not work")
 
-    upload_blob(bucket_name, image_name, image_name)		#Here we upload the new annotated image to the bucket
+    	#Here we download the image from Google Cloud Storage bucket
+    	download_blob(bucket_name, incremented_file, incremented_file )		
 
+    	#Apply a label to the current image
+    	img = Image.open( os.path.abspath(incremented_file) )
+
+    	draw = ImageDraw.Draw(img)
+
+    	# font = ImageFont.truetype(<font-file>, <font-size>)
+    	font = ImageFont.truetype("arial.ttf", 20)
+    	# draw.text((x, y),"Sample Text",(r,g,b))
+    	#draw.text((0, 0), photo_label ,(255,255,255),font=font)
+
+    	width, height = (500,400)
+    	text_x, text_y = draw.textsize( str( photo_label ) )
+
+    	x = (width - text_x)/2
+    	y = (height - text_y)/2
+
+    	draw.text((x,y - 10), ( str(photo_label[0]) + ", " + str(photo_label[1]) + ", " ) ,(255,255,255),font=font)
+    	draw.text((x,y + 10), ( str(photo_label[2]) + ", " + str(photo_label[3]) ) ,(255,255,255),font=font)
+
+    	img.save( incremented_file )
+
+    	upload_blob(bucket_name, incremented_file, incremented_file)		#Here we upload the new annotated image to the bucket
+
+    else:
+        print("skipping odd photo. \n")
+
+    delete_jpg( os.getcwd(), "black_big_ver.jpg" )
     #return photo_label
 
 def apply_funct(directory):		#function which will apply labels to images from a directory and create a video out of them
@@ -465,6 +630,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
     #Steps here before we create the video is basically duplicating the last .jpg file because
     # it doesn't get included into the video for some reason, so my quick fix was duplicating it and
     # adding it to .jpgs in the directory
+
     dict_list = []
     for k in dicto.keys():
         dict_list.append(k)
@@ -501,24 +667,36 @@ def apply_funct_v2(bucket_name):
 
 	blobs = bucket.list_blobs()
 
-	dicto = {}
+	count = 0
 
-	for blob in blobs:
-		#print(blob.name)
+	for blob in blobs:		#gathering blobs
 
 		uri = "gs://{}/{}".format(bucket_name, blob.name)
 
-		detect_faces_uri(uri, blob.name)
+		detect_faces_and_web_uri(uri, blob.name, bucket_name)	#applying detection function
 		time.sleep(2)
 
-		#print("")
+		count += 1
 
-	for blob in blobs:		#Here we download the newly annotated images to the current working directory
-		download_blob(bucket_name, blob.name, blob.name)
-	
+	print("Main operation done. \n")
+
+	download_all_blobs(bucket_name)		#downloading all images to create a video out of them
+
+	#Steps here before we create the video is basically duplicating the last .jpg file because
+    # it doesn't get included into the video for some reason, so my quick fix was duplicating it and
+    # adding it to .jpgs in the directory
+
+	img = Image.open( os.path.abspath("black_big_ver.jpg") )      #opening it
+
+	extra_file = "image-{}.jpg".format( count + 10 )
+
+	img.save(extra_file, "JPEG")    #saving it as a new file, duplicating it
+
+	print("Creating video out of labeled images. \n")
+
 	#The line below executes a ffmpeg command in the command line tool of which creates a video
 	# out of the images in the current directory   
-	fps = 1
+	fps = 0.5
 
 	subprocess.call(["ffmpeg","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video5.avi"])
 
@@ -526,11 +704,24 @@ def apply_funct_v2(bucket_name):
 	#subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
 
 
+
+"""-------------------------Running----------------------------------"""
+
+item2 = raw_input("Please input something you want to search.\n ")
+
+image_search_cloud_ver(item2, "twitter_images", os.getcwd() )
+
+print("Running the rest of the cloud operation. \n")
+
+apply_funct_v2("twitter_images")
+
 #item = raw_input("Please input something you want to search.\n ")
 
 #image_search(item, os.getcwd() )
 
-#print("Running the rest of the operation. \n")
+#print("Running the rest of the regular operation. \n")
 
 #apply_funct( os.getcwd() )	#applies function to current working directory
 
+
+"""------------------------------------------------------------------"""
