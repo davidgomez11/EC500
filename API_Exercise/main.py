@@ -530,7 +530,7 @@ def apply_funct_v2(bucket_name):
 
 #image_search(item, os.getcwd() )
 
-print("Running the rest of the operation. \n")
+#print("Running the rest of the operation. \n")
 
-apply_funct( os.getcwd() )	#applies function to current working directory
+#apply_funct( os.getcwd() )	#applies function to current working directory
 
