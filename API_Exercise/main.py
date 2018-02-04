@@ -37,7 +37,7 @@ api = tweepy.API(auth)
 def image_search(item, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 10)
+	public_tweets = api.search( str(item) , count = 10)		#change the count if you want to search for more items
 
 	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
 
@@ -188,7 +188,7 @@ def delete_jpg(directory, skip):
 def image_search_cloud_ver(item, bucket_name, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 10)
+	public_tweets = api.search( str(item) , count = 10)		#change the count if you want to search for more items
 
 	#time.sleep(2)
 
