@@ -22,11 +22,11 @@ import time
 
 import datetime
 
-consumer_key = 	'XXXXXXX'
-consumer_secret = 'XXXXXX'
+consumer_key = 	'XXXXXXXXXX'
+consumer_secret = 'XXXXXXXXXX'
 
-access_token = 'XXXXXXX'
-access_token_secret = 'XXXXXX'
+access_token = 'XXXXXXXXXX'
+access_token_secret = 'XXXXXXXXXX'
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -37,7 +37,7 @@ api = tweepy.API(auth)
 def image_search(item, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 10)		#change the count if you want to search for more items
+	public_tweets = api.search( str(item) , count = 15)		#change the count if you want to search for more items
 
 	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
 
@@ -168,7 +168,7 @@ def upload_single_to_gcloud(directory, name, bucket_name):
 			continue
 
 
-#Function that deletes .jpg files in a directory, except a file you want to skip (basically )
+#Function that deletes .jpg files in a directory, except a file you want to skip 
 def delete_jpg(directory, skip):
 	for filename in os.listdir(directory):
 		if filename.endswith(".jpg"):
@@ -188,7 +188,7 @@ def delete_jpg(directory, skip):
 def image_search_cloud_ver(item, bucket_name, directory):		
 
 
-	public_tweets = api.search( str(item) , count = 10)		#change the count if you want to search for more items
+	public_tweets = api.search( str(item) , count = 15)		#change the count if you want to search for more items
 
 	#time.sleep(2)
 
@@ -253,7 +253,7 @@ def image_search_cloud_ver(item, bucket_name, directory):
 	
 			i+=1
 
-		time.sleep(2)
+		#time.sleep(2)
 
 		#Uploads two generated photos to the cloud
 		upload_single_to_gcloud( str(os.getcwd()), image1,  bucket_name )
@@ -309,7 +309,7 @@ def detect_faces_and_web(path):
     response2 = client.web_detection(image=image)       #web detection
     notes = response2.web_detection
 
-    time.sleep(2)
+    #time.sleep(2)
 
     # Names of likelihood from google.cloud.vision.enums
     likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
@@ -380,7 +380,7 @@ def detect_faces_and_web(path):
     		if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
     			#print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
 
-    			print("HEREE 1 \n")
+    			#print("HEREE 1 \n")
 
     			vals.append("anger: {}".format(likelihood_name[face.anger_likelihood]))
 
@@ -392,7 +392,7 @@ def detect_faces_and_web(path):
     		if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
     			#print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
 
-    			print("HEREE 2 \n")
+    			#print("HEREE 2 \n")
 
     			vals.append("joy: {}".format(likelihood_name[face.joy_likelihood]))
 
@@ -404,7 +404,7 @@ def detect_faces_and_web(path):
     		if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
     			#print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
 
-    			print("HEREE 3 \n")
+    			#print("HEREE 3 \n")
 
     			vals.append("surprise: {}".format(likelihood_name[face.surprise_likelihood]))
 
@@ -490,14 +490,29 @@ def detect_faces_and_web_uri(uri, image_name, bucket_name):
         if notes.web_entities:
             print ('\n{} Web entities found: '.format(len(notes.web_entities)))
 
-            ver1 = (notes.web_entities[0].description).encode('ascii','replace')
-            ver2 = (notes.web_entities[1].description).encode('ascii','replace')
-            ver3 = (notes.web_entities[2].description).encode('ascii','replace')
+            try:
+            	ver1 = (notes.web_entities[0].description).encode('ascii','replace')
+            	ver2 = (notes.web_entities[1].description).encode('ascii','replace')
+            	ver3 = (notes.web_entities[2].description).encode('ascii','replace')
 
-            vals.append(ver1)
-            vals.append(ver2)
-            vals.append(ver3)
+            	vals.append(ver1)
+            	vals.append(ver2)
+            	vals.append(ver3)
+
+            except IndexError:
+            	diff = 3 - len(vals)
+            	if diff == 1:
+            		vals.append("no value")
+            	if diff == 2:
+            		vals.append("no value")
+            		vals.append("no value")
+
             #print vals
+
+        if len(vals) == 0:
+        	vals.append("no value")
+        	vals.append("no value")
+        	vals.append("no value")
 
     	for face in faces:
     		print("Figuring out facial sentiment in photos. \n")
@@ -546,6 +561,8 @@ def detect_faces_and_web_uri(uri, image_name, bucket_name):
     	if len(photo_label) == 3:		#checking length of list of items gathered from google 
     		photo_label.append("did not work")
 
+    	print(photo_label)
+
     	#Here we download the image from Google Cloud Storage bucket
     	download_blob(bucket_name, incremented_file, incremented_file )		
 
@@ -559,14 +576,9 @@ def detect_faces_and_web_uri(uri, image_name, bucket_name):
     	# draw.text((x, y),"Sample Text",(r,g,b))
     	#draw.text((0, 0), photo_label ,(255,255,255),font=font)
 
-    	width, height = (500,400)
-    	text_x, text_y = draw.textsize( str( photo_label ) )
+    	draw.text((0,20), ( str(photo_label[0]) + ", " + str(photo_label[1]) + ", " ) ,(255,255,255),font=font)
 
-    	x = (width - text_x)/2
-    	y = (height - text_y)/2
-
-    	draw.text((x,y - 10), ( str(photo_label[0]) + ", " + str(photo_label[1]) + ", " ) ,(255,255,255),font=font)
-    	draw.text((x,y + 10), ( str(photo_label[2]) + ", " + str(photo_label[3]) ) ,(255,255,255),font=font)
+    	draw.text((0,40), ( str(photo_label[2]) + ", " + str(photo_label[3]) ) ,(255,255,255),font=font)
 
     	img.save( incremented_file )
 
@@ -591,7 +603,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
 
         	print("Current File: " + filename + "\n")
         	dicto.update(detect_faces_and_web(os.path.join(directory, filename)))
-        	time.sleep(2)
+        	#time.sleep(2)
 
         	continue
         else:
@@ -608,21 +620,12 @@ def apply_funct(directory):		#function which will apply labels to images from a 
         draw = ImageDraw.Draw(img)
         # font = ImageFont.truetype(<font-file>, <font-size>)
         font = ImageFont.truetype("arial.ttf", 20)
-        
-        width, height = (600,480)
-        text_x, text_y = draw.textsize( str(v) )
-
-        x = (width - text_x)/2
-        y = (height - text_y)/2
 
         # draw.text((x, y),"Sample Text",(r,g,b))
-        #.text((0, 0), str(v) ,(255,255,255),font=font)
 
-        #draw.text((x,y), str(v) ,(255,255,255),font=font)
+        draw.text((0,20), ( str(v[0]) + ", " + str(v[1]) + ", " ) ,(255,255,255),font=font)
 
-        draw.text((x,y - 10), ( str(v[0]) + ", " + str(v[1]) + ", " ) ,(255,255,255),font=font)
-
-        draw.text((x,y + 10), ( str(v[2]) + ", " + str(v[3]) ) ,(255,255,255),font=font)
+        draw.text((0,40), ( str(v[2]) + ", " + str(v[3]) ) ,(255,255,255),font=font)
 
         img.save(k)
         print(k,v)
@@ -641,7 +644,7 @@ def apply_funct(directory):		#function which will apply labels to images from a 
 
     img = Image.open( os.path.abspath(last_file) )      #opening it
 
-    extra_file = last_file[0:(last_file.rfind('/')-last_file.find('.')-3)] + "image-{}.jpg".format( len(dicto) + 10 )
+    extra_file = last_file[0:(last_file.rfind('/')-last_file.find('.')-3)] + "image-{}.jpg".format( (len(dicto) * 2) + 10 )
 
     img.save(extra_file, "JPEG")    #saving it as a new file, duplicating it
 
@@ -674,7 +677,7 @@ def apply_funct_v2(bucket_name):
 		uri = "gs://{}/{}".format(bucket_name, blob.name)
 
 		detect_faces_and_web_uri(uri, blob.name, bucket_name)	#applying detection function
-		time.sleep(2)
+		#time.sleep(2)
 
 		count += 1
 
@@ -713,7 +716,7 @@ def apply_funct_v2(bucket_name):
 
 #print("Running the rest of the cloud operation. \n")
 
-#apply_funct_v2("twitter_images")
+#apply_funct_v2("twitter_images") 	#twitter_images is the name for my bucket which resides in Google Cloud Storage
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
 
