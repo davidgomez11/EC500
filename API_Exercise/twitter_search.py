@@ -4,11 +4,11 @@ import wget
 import os
 
 
-consumer_key = 	'XXXXXXXXX'
-consumer_secret = 'XXXXXXXXX'
+consumer_key = 	'x4dyC8ebfwSggbGr0qK4HKJ7K'
+consumer_secret = 'Cf8gaVmda6sDU6HMTOuTGiDKW8Fz3EU0vrAPFenG4hb50NvNql'
 
-access_token = 'XXXXXXXXX'
-access_token_secret = 'XXXXXXXXX'
+access_token = '931179219975012352-ZWedwM22ceploYhFWa2T983byB63JeZ'
+access_token_secret = '4RQ68lkddoVBpkBLik97Hsm5N4j1AzOhmJyjzZ6uSEfE1'
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -35,7 +35,7 @@ def quick_search(item, directory):
 
 	if( len(media_files) == 0):		#Case in which no tweets with multimedia content were found
 		new_item = raw_input("Sorry, your search yielded no pictures.\n Please enter a new search query. \n")
-		image_search(new_item)
+		quick_search(new_item)
 			
 	for media in media_files:	#iterating through set of images
 		
