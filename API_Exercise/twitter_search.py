@@ -35,7 +35,7 @@ def quick_search(item, directory):
 
 	if( len(media_files) == 0):		#Case in which no tweets with multimedia content were found
 		new_item = raw_input("Sorry, your search yielded no pictures.\n Please enter a new search query. \n")
-		quick_search(new_item)
+		quick_search(new_item, directory)
 			
 	for media in media_files:	#iterating through set of images
 		
