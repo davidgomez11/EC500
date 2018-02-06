@@ -4,11 +4,11 @@ import wget
 import os
 
 
-consumer_key = 	'x4dyC8ebfwSggbGr0qK4HKJ7K'
-consumer_secret = 'Cf8gaVmda6sDU6HMTOuTGiDKW8Fz3EU0vrAPFenG4hb50NvNql'
+consumer_key = 	'X'
+consumer_secret = 'X'
 
-access_token = '931179219975012352-ZWedwM22ceploYhFWa2T983byB63JeZ'
-access_token_secret = '4RQ68lkddoVBpkBLik97Hsm5N4j1AzOhmJyjzZ6uSEfE1'
+access_token = 'X'
+access_token_secret = 'X'
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
