@@ -12,6 +12,6 @@ Make sure to download `VLC` at http://www.videolan.org/ in order to run the vide
 
 There are now Google Cloud Storage capabilities, so all you have to do is install those requirements and then run the correct functions and the photos from `Twitter` will be annotated with their labels and be stored in the cloud, until you run another function which would then download those photos from the cloud and create a video of them in your current working directory.
 
-There are separate member functions which only download images from `Twitter`, makes a video out of files in the current working directory using a `FFMPEG` command, and does the facial and web analysis of a path to a .jpg file through `Google Cloud Vision API`
+There are separate member functions which only download images from `Twitter`, makes a video out of files in the current working directory using a `FFMPEG` command, and does the facial and web analysis of a path to a .jpg file through `Google Cloud Vision API`.
 
 
