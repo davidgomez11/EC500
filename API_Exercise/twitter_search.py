@@ -19,7 +19,7 @@ api = tweepy.API(auth)
 # the set that contains the images
 def quick_search(item, directory):		
 
-	public_tweets = api.search( str(item) , count = 10)		#change the count if you want to search for more items
+	public_tweets = api.search( str(item) , count = 15)		#change the count if you want to search for more items
 
 	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
 
@@ -46,4 +46,6 @@ def quick_search(item, directory):
 
 	return media_files
 
+item = raw_input("Please input something you want to search.\n ")
 
+quick_search(item, os.getcwd() )
