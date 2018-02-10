@@ -9,3 +9,5 @@ def images_to_video():
 
 	#for windows users execute this line
 	#subprocess.call(["ffmpeg.exe","-y","-r",str(fps),"-i", "%*.jpg","-vcodec","mpeg4", "-qscale","5", "-r", str(fps), "video4.avi"])
+
+images_to_video()
