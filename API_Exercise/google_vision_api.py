@@ -26,8 +26,6 @@ def detect_faces_and_web(path):
     response2 = client.web_detection(image=image)       #web detection
     notes = response2.web_detection
 
-    time.sleep(2)
-
     # Names of likelihood from google.cloud.vision.enums
     likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
                        'LIKELY', 'VERY_LIKELY')
@@ -47,9 +45,13 @@ def detect_faces_and_web(path):
     if notes.web_entities:
         print ("{} Web entities found: ".format( len(notes.web_entities) ))
         for val in notes.web_entities:
-            print('Score      : {}'.format(val.score))
-            print('Description: {}'.format(val.description))
-            vals.append('Description: {}'.format(val.description))
+            print('Score      : {}'.format( val.score ) )
+            print('Description: {}'.format( (val.description).encode('ascii','replace') ) )
+            vals.append('Description: {}'.format( (val.description).encode('ascii','replace') ) )
+
+            temp = {path: vals}
+
+            photo_label.update(temp)
             
 
     #Here we are doing the facial sentiment analysis appending a sentiment value to our list
@@ -58,51 +60,90 @@ def detect_faces_and_web(path):
 
     	print("Figuring out facial sentiment in photos. \n")
 
-    	print("current image " + path)
+    	print("current image " + path + "\n")
 
     	if ( likelihood_name[face.anger_likelihood] in ideal_likelihoods ):
     		print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
 
     		vals.append("anger: {}".format(likelihood_name[face.anger_likelihood]))
 
-            temp = {path: vals}
+    		temp = {path: vals}
 
-            #adds temporary dictionary variable to the main dictionary
-            photo_label.update(temp)
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label.update(temp)
 
     	if ( likelihood_name[face.joy_likelihood] in ideal_likelihoods ):
     		print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
 
     		vals.append("joy: {}".format(likelihood_name[face.joy_likelihood]))
 
-            temp = {incremented_file: vals}
+    		temp = {path: vals}
 
-            #adds temporary dictionary variable to the main dictionary
-            photo_label.update(temp)
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label.update(temp)
 
     	if ( likelihood_name[face.surprise_likelihood] in ideal_likelihoods):
     		print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
 
     		vals.append("surprise: {}".format(likelihood_name[face.surprise_likelihood]))
 
-            temp = {incremented_file: vals}
+    		temp = {path: vals}
 
-            #adds temporary dictionary variable to the main dictionary
-            photo_label.update(temp)
+    		#adds temporary dictionary variable to the main dictionary
+    		photo_label.update(temp)
 
     	added = True
 
-    	#This case is for if the facial analysis didn't return any values from our ideal_likelihoods list
-    	if added == False:
-    		print('unsure emotions')
+    #This case is for if the facial analysis didn't return any values from our ideal_likelihoods list
+    if added == False:
+    	print('unsure emotions')
 
-    		vals.append("unsure emotions")
+    	vals.append("unsure emotions")
 
-    		temp = {incremented_file: vals}
+    	temp = {path: vals}
 
-    		photo_label.update(temp)
+    	photo_label.update(temp)
 
-    print(photo_label)
+    #This case is for if the facial analysis failed to work at all
+    if ( len(vals) == len(notes.web_entities) ):
+    	print('did not work')
+    	vals.append("did not work")
+
+    	temp = {path: vals}
+
+    	photo_label.update(temp)
+
+
+
+    #print("\n")
+
+    #print(vals)
+
+    #print(photo_label)
 
     return photo_label
+
+#function which will run the Google Cloud Vision API to and image from a directory 
+def run_api(file, directory):		
+	
+	dicto = {}
+
+	for filename in os.listdir(directory):
+
+		if filename.endswith(".jpg"): 
+
+			if filename == file:
+
+				print("Current File: " + filename + "\n")
+				dicto.update(detect_faces_and_web(os.path.join(directory, filename)))
+
+			continue
+		else:
+			continue
+
+	print(dicto)
+	return dicto
+
+
+run_api('input your file here', os.getcwd())
 
