@@ -709,6 +709,7 @@ def apply_funct_v2(bucket_name):
 
 
 """-------------------------Running----------------------------------"""
+#Google Cloud Version
 
 #item2 = raw_input("Please input something you want to search.\n ")
 
@@ -719,6 +720,7 @@ def apply_funct_v2(bucket_name):
 #apply_funct_v2("twitter_images") 	#twitter_images is the name for my bucket which resides in Google Cloud Storage
 
 """~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"""
+#Regular Version
 
 #item = raw_input("Please input something you want to search.\n ")
 
