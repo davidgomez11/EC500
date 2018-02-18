@@ -17,4 +17,6 @@ There are now Google Cloud Storage capabilities, so all you have to do is instal
 
 There are separate member functions which only download images from `Twitter`, makes a video out of files in the current working directory using a `FFMPEG` command, and does the facial and web analysis of a path to a .jpg file through `Google Cloud Vision API`.
 
+The `testbench_code_review` folder has the materials for the second part of this API Exercise, in which I had to review a classmate's code.
+
 
