@@ -3,7 +3,9 @@
 
 ## **Code Review**
    Here is my review for the this repo `https://github.com/BoxiHuang/EC500`.
+
    -Can’t even tell which file to use so I think I'm using the first file I found
+   
    -Can’t even run it from the beginning
    	-you need to put in a case in which it can take someone else’s directory not your own ('/Users/borishuang/Desktop/EC500/‘)
    	-ran into an issue where when you are trying to add labels to the photo it trys to access a photo that doesn’t 
