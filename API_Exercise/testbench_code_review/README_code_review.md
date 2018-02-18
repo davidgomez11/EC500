@@ -19,8 +19,8 @@
    	all the photos from a single Twitter handle. 
    	
    	-Your code definitely doesn’t generate 200 photos (which is a lot already?), it is generating all the photos it can 
-   	find from a user_timeline. So that means I don’t think you understand what you are doing here, so it makes me wonder 
-   	if you even wrote this code?
+   	find from a user_timeline. So I'm not sure I think you understand what you are doing here, so it makes me wonder if 
+   	you even wrote this code?
    	
    	-Its not that hard to change the fontsize on an image (regarding your readme)
    	
