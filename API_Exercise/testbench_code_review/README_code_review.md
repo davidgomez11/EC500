@@ -1,5 +1,5 @@
 # **Main Function**
-  For this part of the assignment I had to review a classmate's repo regarding the main API assignment. After that I had to run their functions and upload a video to a local web host.
+  For this part of the assignment I had to review a classmate's repo regarding the main API assignment. After that I had to run their functions and upload a video to a local web host. The files which do this function are `web_stream.py`, `read_directory.js`, and files in the `templates` folder.
 
 ## **Code Review**
    Here is my review for the this repo `https://github.com/BoxiHuang/EC500`.
