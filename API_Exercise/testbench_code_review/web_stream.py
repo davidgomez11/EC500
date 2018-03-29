@@ -5,7 +5,7 @@ import string
 import wget
 import os
 
-from twitter_search import quick_search
+#from twitter_search import quick_search
 
 from persons_main import *
 
