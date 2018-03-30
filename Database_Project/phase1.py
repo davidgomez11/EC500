@@ -1,6 +1,6 @@
 '''
 Import airport location data and parse through it
-Deomonstrate Read Data, Update Data, and Search/Find Data
+Demonstrate Read Data, Update Data, and Search/Find Data
 '''
 
 
