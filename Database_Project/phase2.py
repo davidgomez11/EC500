@@ -12,11 +12,11 @@ from google.cloud import vision
 from google.cloud.vision import types
 
 
-consumer_key = 	'kFPhQ7RIWW6FRseUVxQRJTQvc'
-consumer_secret = '10LTjlIvjym1YtAdzRZbDO66O0fXvzVS56s4aRO53dp6Yea6PG'
+consumer_key = 	'X'
+consumer_secret = 'X'
 
-access_token = '931179219975012352-OMjHKpJnN6DaVKKcWCg8nPHSADYhGWt'
-access_token_secret = 'hyH78Ypc5d9ma3qKVfswx9UaUxKAMh7aH8OsD2Rf2dmYy'
+access_token = 'X'
+access_token_secret = 'X'
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
