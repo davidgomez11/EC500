@@ -31,8 +31,6 @@ def q_search(item):
 
 	public_tweets = api.search( str(item) , count = 15)		#change the count if you want to search for more items
 
-	media_files = set()		#Using a set since sets can't contain duplicate items, so I dont have duplicate photos
-
 	for tweet in public_tweets:		#Searching through tweets generated
 
 		print(tweet.text)
