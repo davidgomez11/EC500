@@ -16,3 +16,8 @@ Demonstrate Read Data, Update Data, and Search/Find Data
             * Number of images per feed 
             * Most popular descriptors 
             * Relationship between Google Trending terms and Twitter feeds
+
+## **Phase 3**
+*Develop scripts to run your new system (combined project 1 + Database project) with at least 20 twitter handles for at least 3 consecutive days (I don’t want you to go over your free Google Vision API limits)
+	*You can use most popular Twitter users	
+*Use your module to provide daily stats about overall trending topics and usage
