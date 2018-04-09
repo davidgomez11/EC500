@@ -112,6 +112,26 @@ def continous_run(user):
 
 
 run_stuff("neymarjr")
-#run_stuff("justinbieber")
+run_stuff("justinbieber")
+run_stuff("Cristiano")
+run_stuff("realDonaldTrump")
+run_stuff("shakira")
+run_stuff("BillGates")
+run_stuff("Drake")
+run_stuff("KingJames")
+run_stuff("LilTunechi")
+run_stuff("KAKA")
+run_stuff("KevinHart4real")
+run_stuff("selenagomez")
+run_stuff("jtimberlake")
+run_stuff("rihanna")
+run_stuff("BarackObama")
+run_stuff("taylorswift13")
+run_stuff("Youtube")
+run_stuff("jimmyfallon")
+run_stuff("JLo")
+run_stuff("Oprah")
+
+
 #continous_run("neymarjr")
 
