@@ -22,3 +22,6 @@ Demonstrate Read Data, Update Data, and Search/Find Data
 least 3 consecutive days (I don’t want you to go over your free Google Vision API limits)
 	* You can use most popular Twitter users	
 * Use your module to provide daily stats about overall trending topics and usage
+
+## **SQL Practice**
+* Practice database commands with a `SQL` database, in this case I used `SQLite` within a script which uploaded the airports.json file into a `SQLite` database and from there you can mess around with specific `SQL` commands
